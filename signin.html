@@ -1,0 +1,524 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Library - Sign In</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #063970, #168aad);
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 430px;
+            background: white;
+            padding: 32px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px #0003;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 48px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #063970;
+            margin: 10px 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 15px 0 7px;
+        }
+
+        label[hidden] {
+            display: none;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        .password-box {
+            position: relative;
+        }
+
+        .password-box input {
+            padding-right: 65px;
+        }
+
+        #showPassword {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #087ea4;
+            cursor: pointer;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 13px;
+            margin-top: 24px;
+            border: none;
+            border-radius: 7px;
+            background: #063970;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .login-btn:hover {
+            background: #168aad;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .info-panel {
+            margin-top: 20px;
+            padding: 12px;
+            background: #eef7fb;
+            border-radius: 7px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-box">
+    <div class="logo">📚</div>
+    <h1>E-Library</h1>
+    <p class="subtitle">Sign in to access your dashboard</p>
+
+    <form id="loginForm">
+        <label for="role">Select your role</label>
+        <select id="role" required>
+            <option value="">-- Select Role --</option>
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+            <option value="admin">Administrator</option>
+        </select>
+
+        <label for="email">Email</label>
+        <input id="email" type="email"
+               placeholder="Enter email address"
+               autocomplete="username" required>
+
+        <label for="password">Password</label>
+        <div class="password-box">
+            <input id="password" type="password"
+                   placeholder="Enter password"
+                   autocomplete="current-password" minlength="8" required>
+            <button type="button" id="showPassword">Show</button>
+        </div>
+
+        <div id="signupFields" hidden>
+            <label for="fullName">Full name</label>
+            <input id="fullName" type="text" maxlength="100"
+                   autocomplete="name">
+
+            <div id="roleCodeFields" hidden>
+                <label for="roleCode">Registration confirmation code</label>
+                <input id="roleCode" type="password" autocomplete="off">
+            </div>
+
+            <label for="admissionNumber" id="admissionNumberLabel">Admission number</label>
+            <input id="admissionNumber" type="text" maxlength="50">
+        </div>
+
+        <button type="submit" class="login-btn" id="submitButton">Sign In</button>
+        <button type="button" class="login-btn" id="modeToggle">
+            Create student account
+        </button>
+        <p id="message" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="info-panel">
+        Students can register directly. Teacher and administrator registration
+        requires the matching confirmation code.
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-client.js"></script>
+<script>
+    const dashboardTargets = {
+        student: "studentDashboard",
+        teacher: "teacherDashboard",
+        admin: "adminSection"
+    };
+
+    const form = document.getElementById("loginForm");
+    const roleField = document.getElementById("role");
+    const emailField = document.getElementById("email");
+    const passwordField = document.getElementById("password");
+    const message = document.getElementById("message");
+    const submitButton = document.getElementById("submitButton");
+    const modeToggle = document.getElementById("modeToggle");
+    const signupFields = document.getElementById("signupFields");
+    const fullNameField = document.getElementById("fullName");
+    const roleCodeFields = document.getElementById("roleCodeFields");
+    const roleCodeField = document.getElementById("roleCode");
+    const admissionNumberField = document.getElementById("admissionNumber");
+    const admissionNumberLabel = document.getElementById("admissionNumberLabel");
+    const requestedRole = new URLSearchParams(window.location.search).get("role");
+    const supabaseState = window.ELibrarySupabase;
+    let creatingAccount = false;
+    let accountRoleBeforeSignup = "";
+
+    if (Object.prototype.hasOwnProperty.call(dashboardTargets, requestedRole)) {
+        roleField.value = requestedRole;
+        message.textContent = `Sign in as ${requestedRole} to continue to the dashboard.`;
+        message.style.color = "#68766d";
+    }
+
+    if (requestedRole === "admin") {
+        modeToggle.textContent = "Create administrator account";
+    } else if (requestedRole === "teacher") {
+        modeToggle.textContent = "Create teacher account";
+    }
+
+    function showMessage(text, isError) {
+        message.textContent = text;
+        message.style.color = isError ? "#b42318" : "#176b45";
+    }
+
+    function setMode(signup) {
+        if (signup) {
+            accountRoleBeforeSignup = roleField.value;
+            if (accountRoleBeforeSignup !== "student" &&
+                accountRoleBeforeSignup !== "teacher" &&
+                accountRoleBeforeSignup !== "admin") {
+                accountRoleBeforeSignup =
+                    requestedRole === "teacher" ? "teacher" : "student";
+            }
+            roleField.value = accountRoleBeforeSignup;
+        }
+
+        creatingAccount = signup;
+        signupFields.hidden = !signup;
+        fullNameField.required = signup;
+        roleCodeFields.hidden = !signup || roleField.value === "student";
+        roleCodeField.required = signup && roleField.value !== "student";
+        admissionNumberField.required = signup && roleField.value === "student";
+        admissionNumberField.hidden = signup && roleField.value !== "student";
+        admissionNumberLabel.hidden = signup && roleField.value !== "student";
+        roleField.querySelector('option[value="admin"]').hidden = false;
+        roleField.disabled = signup && requestedRole === "admin";
+
+        if (signup) {
+            passwordField.autocomplete = "new-password";
+            submitButton.textContent = roleField.value === "teacher"
+                ? "Create Teacher Account"
+                : roleField.value === "admin"
+                    ? "Create Administrator Account"
+                    : "Create Student Account";
+            modeToggle.textContent = "Back to sign in";
+        } else {
+            roleField.value = requestedRole || accountRoleBeforeSignup || "student";
+            roleField.disabled = false;
+            roleCodeField.value = "";
+            passwordField.autocomplete = "current-password";
+            submitButton.textContent = "Sign In";
+            modeToggle.textContent = roleField.value === "admin"
+                ? "Create administrator account"
+                : roleField.value === "teacher"
+                    ? "Create teacher account"
+                    : "Create student account";
+        }
+    }
+
+    async function getProfile(userId) {
+        const { data, error } = await supabaseState.client
+            .from("profiles")
+            .select("role, is_active")
+            .eq("id", userId)
+            .single();
+
+        if (error) throw error;
+        if (!data.is_active) {
+            await supabaseState.client.auth.signOut();
+            throw new Error("This account has been deactivated. Contact an administrator.");
+        }
+        return data;
+    }
+
+    function openDashboard(role) {
+        window.location.replace(`index.html#${dashboardTargets[role]}`);
+    }
+
+    async function restoreSession() {
+        if (!supabaseState || !supabaseState.client) return;
+
+        const { data, error } = await supabaseState.client.auth.getSession();
+        if (error) {
+            showMessage(error.message, true);
+            return;
+        }
+
+        if (!data.session) return;
+
+        try {
+            const profile = await getProfile(data.session.user.id);
+
+            if (!Object.prototype.hasOwnProperty.call(dashboardTargets, profile.role)) {
+                throw new Error("This account does not have a valid dashboard role.");
+            }
+
+            if (requestedRole && requestedRole !== profile.role) {
+                await supabaseState.client.auth.signOut();
+                showMessage(
+                    `This account is not registered as ${requestedRole}. Sign in with the correct account.`,
+                    true
+                );
+                return;
+            }
+
+            openDashboard(profile.role);
+        } catch (error) {
+            showMessage(error.message || "Could not load your account profile.", true);
+        }
+    }
+
+    document.getElementById("showPassword").addEventListener("click", function () {
+        const hidden = passwordField.type === "password";
+        passwordField.type = hidden ? "text" : "password";
+        this.textContent = hidden ? "Hide" : "Show";
+    });
+
+    modeToggle.addEventListener("click", () => {
+        setMode(!creatingAccount);
+        showMessage("", false);
+    });
+
+    roleField.addEventListener("change", () => {
+        if (creatingAccount) {
+            roleCodeFields.hidden = roleField.value === "student";
+            roleCodeField.required = roleField.value !== "student";
+            if (roleField.value === "student") roleCodeField.value = "";
+            admissionNumberField.required = roleField.value === "student";
+            admissionNumberField.hidden = roleField.value !== "student";
+            admissionNumberLabel.hidden = roleField.value !== "student";
+            submitButton.textContent = roleField.value === "teacher"
+                ? "Create Teacher Account"
+                : roleField.value === "admin"
+                    ? "Create Administrator Account"
+                    : "Create Student Account";
+        } else if (requestedRole !== "admin") {
+            modeToggle.hidden = false;
+            modeToggle.textContent = roleField.value === "admin"
+                ? "Create administrator account"
+                : roleField.value === "teacher"
+                    ? "Create teacher account"
+                    : "Create student account";
+        }
+    });
+
+    if (!supabaseState || !supabaseState.client) {
+        showMessage(
+            supabaseState ? supabaseState.error : "Supabase has not been configured.",
+            true
+        );
+        submitButton.disabled = true;
+        modeToggle.disabled = true;
+    } else {
+        restoreSession();
+    }
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const role = roleField.value;
+        const email = emailField.value.trim();
+        const password = passwordField.value;
+
+        if (!supabaseState || !supabaseState.client) {
+            showMessage(
+                supabaseState ? supabaseState.error : "Supabase has not been configured.",
+                true
+            );
+            return;
+        }
+
+        if (!role || !email || !password) {
+            showMessage("Please complete all required fields.", true);
+            return;
+        }
+
+        if (creatingAccount && role !== "student" && !roleCodeField.value.trim()) {
+            showMessage("Enter the confirmation code for this role.", true);
+            return;
+        }
+
+        submitButton.disabled = true;
+
+        try {
+            if (creatingAccount) {
+                if (!['student', 'teacher', 'admin'].includes(role)) {
+                    throw new Error("Choose a valid account type.");
+                }
+
+                if (role === "teacher" || role === "admin") {
+                    const { data: registration, error: registrationError } =
+                        await supabaseState.client.functions.invoke("register-staff", {
+                            body: {
+                                email,
+                                password,
+                                full_name: fullNameField.value.trim(),
+                                role,
+                                registration_code: roleCodeField.value
+                            }
+                        });
+
+                    if (registrationError) {
+                        if (registrationError.name === "FunctionsFetchError") {
+                            throw new Error(
+                                "The staff registration function could not be reached. Deploy the register-staff function and its Supabase configuration, then try again."
+                            );
+                        }
+
+                        let errorMessage = registrationError.message;
+                        if (registrationError.context && registrationError.context.json) {
+                            try {
+                                const response = await registrationError.context.json();
+                                if (response.error) errorMessage = response.error;
+                            } catch (parseError) {
+                                console.error("Could not read the registration error response.", parseError);
+                            }
+                        }
+                        throw new Error(errorMessage);
+                    }
+
+                    if (registration.session) {
+                        const { data: sessionData, error: sessionError } =
+                            await supabaseState.client.auth.setSession(registration.session);
+                        if (sessionError) throw sessionError;
+
+                        const profile = await getProfile(sessionData.session.user.id);
+                        if (profile.role !== role) {
+                            await supabaseState.client.auth.signOut();
+                            throw new Error("Your account role could not be verified.");
+                        }
+                        openDashboard(profile.role);
+                        return;
+                    }
+
+                    showMessage(
+                        "Account created. Confirm your email if asked, then sign in.",
+                        false
+                    );
+                    setMode(false);
+                    return;
+                }
+
+                const { data, error } = await supabaseState.client.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullNameField.value.trim(),
+                            admission_number: role === "student"
+                                ? admissionNumberField.value.trim()
+                                : "",
+                            requested_role: role
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (data.session) {
+                    const profile = await getProfile(data.user.id);
+
+                    if (profile.role !== role) {
+                        await supabaseState.client.auth.signOut();
+                        throw new Error(
+                            `Supabase created this account with the ${profile.role} role. Run the updated supabase-setup.sql before registering as an administrator.`
+                        );
+                    }
+
+                    openDashboard(profile.role);
+                    return;
+                }
+
+                showMessage(
+                    role === "admin"
+                        ? "Administrator account created. Confirm your email if asked, then sign in as Administrator to open the dashboard."
+                        : "Account created. Confirm your email if asked, then sign in.",
+                    false
+                );
+                setMode(false);
+            } else {
+                const { data, error } =
+                    await supabaseState.client.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                if (error) throw error;
+
+                const profile = await getProfile(data.user.id);
+
+                if (profile.role !== role) {
+                    await supabaseState.client.auth.signOut();
+                    throw new Error(
+                        `This account is registered as ${profile.role}, not ${role}.`
+                    );
+                }
+
+                if (!Object.prototype.hasOwnProperty.call(dashboardTargets, profile.role)) {
+                    await supabaseState.client.auth.signOut();
+                    throw new Error("This account does not have a valid dashboard role.");
+                }
+
+                openDashboard(profile.role);
+            }
+        } catch (error) {
+            showMessage(error.message || "Sign-in could not be completed.", true);
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>

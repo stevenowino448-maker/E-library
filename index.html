@@ -1,0 +1,490 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="E-Library Past Papers System for students and teachers.">
+    <title>E-Library | Past Papers System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="topbar" id="home">
+    <a class="brand" href="#home">📚 E-Library</a>
+
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#library">Past Papers</a>
+        <a href="signin.html?role=student" data-dashboard-role="student"
+           data-dashboard-target="studentDashboard">Student Dashboard</a>
+        <a href="signin.html?role=teacher" data-dashboard-role="teacher"
+           data-dashboard-target="teacherDashboard">Teacher Dashboard</a>
+        <button class="nav-admin" id="adminToggle" type="button">
+            Admin Dashboard
+        </button>
+        <button class="nav-admin" id="signOutButton" type="button" hidden>
+            Sign Out
+        </button>
+    </nav>
+</header>
+
+<!-- ================= HERO SECTION ================= -->
+<section class="hero">
+    <div class="hero-content">
+        <p class="eyebrow">YOUR DIGITAL STUDY LIBRARY</p>
+        <h1>Find Past Papers.<br>Prepare for Success.</h1>
+        <p>
+            Access examination papers, practise questions, upload your work
+            and prepare for your examinations.
+        </p>
+        <a class="primary-button" href="#library">Explore Past Papers</a>
+    </div>
+</section>
+
+<main>
+
+    <!-- ================= STATISTICS ================= -->
+    <section class="stats">
+        <div class="stat-card">
+            <span class="stat-icon">📄</span>
+            <div>
+                <p>Total Past Papers</p>
+                <h2 id="totalCount">0</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">📚</span>
+            <div>
+                <p>Subjects Available</p>
+                <h2 id="subjectCount">0</h2>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">📅</span>
+            <div>
+                <p>Examination Years</p>
+                <h2 id="yearCount">0</h2>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= PAST PAPERS LIBRARY ================= -->
+    <section class="library section" id="library">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">STUDENT RESOURCE CENTRE</p>
+                <h2>Past Papers Library</h2>
+                <p class="muted">
+                    Search, preview and download available examination papers.
+                </p>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="search-box">
+                <span>🔎</span>
+                <input
+                    id="searchInput"
+                    type="search"
+                    placeholder="Search papers, subjects or courses..."
+                    aria-label="Search past papers">
+            </div>
+
+            <select id="subjectFilter" aria-label="Filter by subject">
+                <option value="">All subjects</option>
+            </select>
+
+            <select id="yearFilter" aria-label="Filter by year">
+                <option value="">All years</option>
+            </select>
+
+            <select id="examFilter" aria-label="Filter by examination body">
+                <option value="">All examination bodies</option>
+            </select>
+        </div>
+
+        <div class="results-line">
+            <p id="resultsCount">0 papers found</p>
+            <button class="text-button" id="clearFilters" type="button">
+                Clear filters
+            </button>
+        </div>
+
+        <div id="paperList" class="paper-grid">
+            <div class="empty-state">
+                <strong>Welcome to the Past Papers Library</strong>
+                Past papers uploaded by the administrator will appear here.
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= STUDENT DASHBOARD ================= -->
+    <section class="section dashboard-section" id="studentDashboard" hidden>
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">STUDENT PORTAL</p>
+                <h2>Student Dashboard</h2>
+                <p class="muted">
+                    Access past papers and submit your completed work.
+                </p>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Upload Your Work</h3>
+            <p class="muted">
+                Submit your assignment, examination answers or other
+                academic work as a PDF document.
+            </p>
+
+            <form id="studentUploadForm" class="upload-form">
+                <label for="studentName">Student Full Name *</label>
+                <input
+                    id="studentName"
+                    name="studentName"
+                    type="text"
+                    maxlength="100"
+                    placeholder="Enter your full name"
+                    required>
+
+                <label for="studentAdmission">Admission Number *</label>
+                <input
+                    id="studentAdmission"
+                    name="studentAdmission"
+                    type="text"
+                    maxlength="50"
+                    placeholder="Enter your admission number"
+                    required>
+
+                <label for="submissionSubject">Subject *</label>
+                <input
+                    id="submissionSubject"
+                    name="submissionSubject"
+                    type="text"
+                    maxlength="100"
+                    placeholder="e.g. Computer Programming"
+                    required>
+
+                <label for="submissionTitle">Assignment or Paper Title *</label>
+                <input
+                    id="submissionTitle"
+                    name="submissionTitle"
+                    type="text"
+                    maxlength="150"
+                    placeholder="e.g. July 2025 Past Paper Answers"
+                    required>
+
+                <label for="submissionFile">Select PDF File *</label>
+                <input
+                    id="submissionFile"
+                    name="submissionFile"
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    required>
+
+                        <p class="form-note">
+                            Maximum file size: 15 MB. Only PDF documents are accepted.
+                        </p>
+
+                <button class="primary-button full-width" type="submit">
+                    Submit Work
+                </button>
+
+                <p
+                    id="studentUploadMessage"
+                    class="message"
+                    aria-live="polite"></p>
+            </form>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>My Submissions</h3>
+            <p class="muted">
+                Enter your admission number to view your submitted work
+                and its review status.
+            </p>
+
+            <form id="studentLookupForm" class="lookup-form">
+                <input
+                    id="lookupAdmission"
+                    name="lookupAdmission"
+                    type="text"
+                    placeholder="Enter admission number"
+                    required>
+
+                <button class="primary-button" type="submit">
+                    View My Work
+                </button>
+            </form>
+
+            <div id="studentSubmissionList">
+                <div class="empty-state">
+                    <strong>No submissions displayed</strong>
+                    Enter your admission number to check your submissions.
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>Browse Examination Papers</h3>
+            <p class="muted">
+                Search for past papers by subject, year or examination body.
+            </p>
+            <a class="primary-button" href="#library">
+                Open Past Papers Library
+            </a>
+        </div>
+    </section>
+
+    <!-- ================= TEACHER DASHBOARD ================= -->
+    <section class="section dashboard-section teacher-section"
+             id="teacherDashboard" hidden>
+
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">TEACHER PORTAL</p>
+                <h2>Teacher Dashboard</h2>
+                <p class="muted">
+                    View student submissions, download work, mark it reviewed
+                    and remove unwanted submissions.
+                </p>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="teacher-toolbar">
+                <div>
+                    <h3>Student Submissions</h3>
+                    <p class="muted">
+                        Review work submitted through the Student Dashboard.
+                    </p>
+                </div>
+
+                <button
+                    class="secondary-button"
+                    id="refreshSubmissions"
+                    type="button">
+                    Refresh List
+                </button>
+            </div>
+
+            <div class="filters teacher-filters">
+                <input
+                    id="teacherSearch"
+                    type="search"
+                    placeholder="Search student, admission or subject..."
+                    aria-label="Search student submissions">
+
+                <select
+                    id="teacherSubjectFilter"
+                    aria-label="Filter submissions by subject">
+                    <option value="">All subjects</option>
+                </select>
+            </div>
+
+            <div id="teacherSubmissionList">
+                <div class="empty-state">
+                    <strong>No submissions loaded</strong>
+                    Student uploads will appear here after the page loads.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= ADMIN DASHBOARD ================= -->
+    <section class="admin-section section" id="adminSection" hidden>
+        <div class="admin-heading">
+            <div>
+                <p class="eyebrow">LIBRARY MANAGEMENT</p>
+                <h2>Administrator Dashboard</h2>
+                <p class="muted">
+                    Upload, organise and manage examination papers.
+                </p>
+            </div>
+
+            <button
+                class="secondary-button"
+                id="closeAdmin"
+                type="button">
+                Close Dashboard
+            </button>
+        </div>
+
+        <section class="admin-accounts-panel" aria-labelledby="adminAccountsHeading">
+            <div class="admin-accounts-heading">
+                <div>
+                    <h3 id="adminAccountsHeading">Student and Teacher Accounts</h3>
+                    <p class="muted">Edit account details, roles, access, and password recovery.</p>
+                </div>
+                <button class="secondary-button" id="refreshAdminAccounts" type="button">
+                    Refresh Accounts
+                </button>
+            </div>
+            <input
+                id="adminAccountSearch"
+                type="search"
+                placeholder="Search name, email, admission number..."
+                aria-label="Search student and teacher accounts">
+            <p id="adminAccountMessage" class="message" aria-live="polite"></p>
+            <div id="adminAccountList">
+                <div class="empty-state">Account list will load when the dashboard opens.</div>
+            </div>
+        </section>
+
+        <div class="admin-layout">
+            <form id="uploadForm" class="upload-form">
+                <h3>Upload a Past Paper</h3>
+
+                <label for="paperTitle">Paper Title *</label>
+                <input
+                    id="paperTitle"
+                    type="text"
+                    maxlength="120"
+                    placeholder="e.g. Computer Programming"
+                    required>
+
+                <label for="paperSubject">Subject *</label>
+                <input
+                    id="paperSubject"
+                    type="text"
+                    maxlength="80"
+                    placeholder="e.g. Computer Programming"
+                    required>
+
+                <label for="paperCourse">Course / Department *</label>
+                <input
+                    id="paperCourse"
+                    type="text"
+                    maxlength="100"
+                    placeholder="e.g. ICT Technician Level 6"
+                    required>
+
+                <label for="paperExam">Examination Body *</label>
+                <select id="paperExam" required>
+                    <option value="">Select examination body</option>
+                    <option value="KNEC">KNEC</option>
+                    <option value="TVET CDACC">TVET CDACC</option>
+                    <option value="College Examination">College Examination</option>
+                    <option value="University Examination">University Examination</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label for="paperYear">Examination Year *</label>
+                <input
+                    id="paperYear"
+                    type="number"
+                    min="1950"
+                    max="2100"
+                    placeholder="e.g. 2025"
+                    required>
+
+                <label for="paperDescription">Description (Optional)</label>
+                <textarea
+                    id="paperDescription"
+                    rows="3"
+                    maxlength="500"
+                    placeholder="Add details about this paper"></textarea>
+
+                <label for="paperFile">PDF Document *</label>
+                <input
+                    id="paperFile"
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    required>
+
+                <p class="form-note">
+                    Maximum file size: 15 MB. Upload only papers you have
+                    permission to share.
+                </p>
+
+                <button
+                    class="primary-button full-width"
+                    id="uploadButton"
+                    type="submit">
+                    Upload Past Paper
+                </button>
+
+                <p
+                    id="uploadMessage"
+                    class="message"
+                    aria-live="polite"></p>
+            </form>
+
+            <div class="manage-panel">
+                <h3>Manage Uploaded Papers</h3>
+                <p class="muted">
+                    Preview, download or remove papers from the library.
+                </p>
+
+                <div id="adminPaperList">
+                    <div class="empty-state">
+                        <strong>No papers loaded</strong>
+                        Uploaded papers will appear here.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ================= PDF PREVIEW MODAL ================= -->
+<div id="previewModal" class="modal" hidden>
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h2 id="previewTitle">Past Paper Preview</h2>
+                <p id="previewDetails" class="muted"></p>
+            </div>
+
+            <button
+                id="closePreview"
+                class="close-button"
+                type="button"
+                aria-label="Close PDF preview">
+                ✕
+            </button>
+        </div>
+
+        <iframe
+            id="pdfViewer"
+            title="PDF document preview">
+        </iframe>
+
+        <div class="modal-footer">
+            <a
+                id="downloadLink"
+                class="primary-button"
+                href="#">
+                Download PDF
+            </a>
+
+            <button
+                id="closePreviewBottom"
+                class="secondary-button"
+                type="button">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+    <h3>📚 E-Library Past Papers</h3>
+    <p>A digital learning resource for students and teachers.</p>
+    <p class="footer-small">Student information and PDFs are stored in Supabase.</p>
+    <p>© <span id="currentYear"></span> E-Library</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="supabase-client.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
